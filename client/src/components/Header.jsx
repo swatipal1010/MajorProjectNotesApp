@@ -4,7 +4,7 @@ import { FaSearch } from "react-icons/fa";
 import { MdOutlineFileUpload } from "react-icons/md";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { useDispatch, useSelector } from "react-redux";
-import { removeUserData, setUserData } from "../Redux/slices/user-slice";
+import { removeUserData } from "../Redux/slices/user-slice";
 
 const Navbar = () => {
 
@@ -36,27 +36,26 @@ const Navbar = () => {
             About
           </Link>
 
-          {/* Conditional Rendering */}
+          {/* Always show these links, regardless of authentication */}
+          <Link to="/search">
+            <FaSearch className="text-xl" />
+          </Link>
+          <Link to="/upload">
+            <MdOutlineFileUpload className="text-[24px]" />
+          </Link>
+          <Link to="/profile">
+            <button className="rounded-xl bg-blue-500 px-5 py-2 font-semibold hover:bg-blue-600">
+              Profile
+            </button>
+          </Link>
+
+          {/* Conditional Rendering for Login/Logout */}
           {isAuthenticated ? (
-            <>
-              <Link to="/search">
-                <FaSearch className="text-xl" />
-              </Link>
-              <Link to="/upload">
-                <MdOutlineFileUpload className="text-[24px]" />
-              </Link>
-              <Link to="/profile">
-                <button className="rounded-xl bg-blue-500 px-5 py-2 font-semibold hover:bg-blue-600">
-                  Profile
-                </button>
-              </Link>
-              <button className="rounded-xl bg-blue-500 px-5 py-2 font-semibold hover:bg-blue-600" onClick={handleLogout}>
-                Logout
-              </button>
-            </>
+            <button className="rounded-xl bg-blue-500 px-5 py-2 font-semibold hover:bg-blue-600" onClick={handleLogout}>
+              Logout
+            </button>
           ) : (
             <>
-
               <Link to="/login">
                 <button className="rounded-xl bg-blue-500 px-5 py-2 font-semibold hover:bg-blue-600">
                   Login
@@ -68,7 +67,6 @@ const Navbar = () => {
                 </button>
               </Link>
             </>
-
           )}
 
         </div>

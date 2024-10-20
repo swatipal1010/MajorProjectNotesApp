@@ -16,28 +16,24 @@ const App = () => {
 
   return (
     <Router>
-      <Header />
+  <Header />
 
-      <div>
-        <Routes>
-          <Route exact path="/" element={<Home />} />
-          {isAuthenticated ? (
-            <>
-              <Route path="/upload" element={<Upload />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/search" element={<Search />} />
-            </>
-          ) : (
-            <>
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/login" element={<Login />} />
-            </>
-          )}
-          <Route path="/about" element={<About />} />
-          <Route path="/faq" element={<Faq />} />
-        </Routes>
-      </div>
-    </Router >
+  <div>
+    <Routes>
+      <Route exact path="/" element={<Home />} />
+      {/* Temporarily allowing access to all pages */}
+      <Route path="/upload" element={<Upload />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/search" element={<Search />} />
+      {/* You can leave these routes for signup/login */}
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/faq" element={<Faq />} />
+    </Routes>
+  </div>
+</Router>
+
   );
 };
 
