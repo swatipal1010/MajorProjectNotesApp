@@ -3,27 +3,45 @@ const dotenv = require("dotenv");
 const User = require("../Models/User");
 const bcrypt = require("bcrypt");
 const multer = require("multer");
-const cloudinary = require("cloudinary");
+const path = require("path");
 
 dotenv.config();
 
-const router = express.Router();
-
-const storage = multer.memoryStorage();
-var upload = multer({
-    storage: storage
+// Configure storage for uploaded files
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadPath = path.join(__dirname, "../uploads"); // Directory to store files
+        cb(null, uploadPath);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + "-" + file.originalname;
+        cb(null, uniqueSuffix); // Save file with a unique name
+    }
 });
 
-//Signup Route
+// Initialize Multer
+const upload = multer({
+    storage: storage,
+    fileFilter: function (req, file, cb) {
+        // Check file type
+        const fileTypes = /jpeg|jpg|png/;
+        const extName = fileTypes.test(path.extname(file.originalname).toLowerCase());
+        if (extName) {
+            return cb(null, true);
+        }
+        cb(new Error("Only JPEG, JPG, and PNG images are allowed"));
+    }
+});
+
+// Signup Controller
 const signup = async (req, res) => {
     try {
         const { firstName, lastName, userBio, userEmail, userMobile, userName } = req.body;
 
-        // If current user exists
-
+        // Check if user already exists
         const existingUser = await User.findOne({ userEmail });
         if (existingUser) {
-            res.status(401).send("User Already Exists with this email");
+            return res.status(401).json({ error: "User already exists with this email" });
         }
 
         // Check if file is provided
@@ -31,17 +49,12 @@ const signup = async (req, res) => {
             return res.status(400).json({ error: "No Profile Image Provided" });
         }
 
-        const result = await cloudinary.uploader.upload(req.file.path);
-        console.log(result);
-
-        const password = req.body.userPassword;
+        // Encrypt password
         const saltRounds = 10;
-
         const salt = await bcrypt.genSalt(saltRounds);
+        const encryptedPassword = await bcrypt.hash(req.body.userPassword, salt);
 
-        const encryptedPassword = await bcrypt.hash(password, salt);
-        console.log("Request Body: ", req.body);
-
+        // Create new user
         const newUser = new User({
             firstName,
             lastName,
@@ -50,26 +63,24 @@ const signup = async (req, res) => {
             userMobile,
             userName,
             userPassword: encryptedPassword,
-            profileImage: result.secure_url
+            profileImage: `/uploads/${req.file.filename}` // Save relative file path in the database
         });
 
         await newUser.save();
 
-        return res.status(200).json({
+        res.status(200).json({
             status: "Ok",
             user: newUser
         });
-
     } catch (error) {
         res.status(400).json({ error: error.message });
-        console.log(error);
     }
 };
 
+// Login Controller
 const login = async (req, res) => {
     try {
         const { userEmail, userPassword } = req.body;
-        // console.log(userEmail);
 
         const user = await User.findOne({ userEmail });
 
@@ -78,16 +89,14 @@ const login = async (req, res) => {
             if (passwordMatch) {
                 return res.json(user);
             } else {
-                return res.json({ status: "Error", getUser: false })
+                return res.status(401).json({ status: "Error", getUser: false, message: "Invalid credentials" });
             }
         } else {
-            return res.json({ status: "Error", getUser: false });
+            return res.status(404).json({ status: "Error", getUser: false, message: "User not found" });
         }
-
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 };
 
-
-module.exports = { signup, login };
+module.exports = { signup, login, upload };

@@ -12,13 +12,14 @@ const PORT = 6969;
 
 dotenv.config();
 app.use(cors());
-app.use(bodyParser.json());
 app.use(express.json());
 
+// Log MongoDB URL
+console.log("MongoDB URL: ", process.env.MONGO_URL);
 
 try {
     mongoose.connect(process.env.MONGO_URL);
-    console.log("Connection Successfull");
+    console.log("Connection Successful");
 } catch (error) {
     console.log(error);
 }
@@ -27,11 +28,15 @@ app.get("/", (req, res) => {
     res.send("Server Is Running");
 });
 
+// Static file serving for uploads folder
+app.use("/uploads", express.static("uploads"));
 
+// Use authRoutes with multer for handling image upload
 app.use("/auth", authRoutes);
+
+// Other routes
 app.use("/notes", noteRoutes);
-app.use("/files", express.static("files"));
 
 app.listen(PORT, () => {
     console.log(`Server Running on Port ${PORT}`);
-})
+});
